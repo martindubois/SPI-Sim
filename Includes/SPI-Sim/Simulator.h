@@ -11,9 +11,7 @@
 #include <KMS/CLI/Tool.h>
 #include <KMS/Com/Port.h>
 #include <KMS/Msg/IReceiver.h>
-#include <KMS/Thread/Thread.h>
-#include <KMS/WOP/Receiver.h>
-#include <KMS/WOP/Sender.h>
+#include <KMS/WOP/Link_Port.h>
 #include <KMS/WOP/System.h>
 #include <KMS/WOP/ValueArray.h>
 
@@ -64,8 +62,6 @@ namespace SPI_Sim
 
         // ===== Events =====================================================
         unsigned int OnChipsChanged();
-        unsigned int OnReceive();
-        unsigned int OnSend();
 
         // ===== Command ====================================================
         void ChipCommand(unsigned int aIndex, const char* aCmd);
@@ -81,12 +77,8 @@ namespace SPI_Sim
 
         KMS::WOP::Object* mInstances[3 + CHIP_MAX];
 
-        KMS::WOP::Receiver mReceiver;
-        KMS::WOP::Sender   mSender;
-        KMS::WOP::System   mSystem;
-
-        KMS::Thread::Thread mThread_Receiver;
-        KMS::Thread::Thread mThread_Sender;
+        KMS::WOP::Link_Port mLink;
+        KMS::WOP::System    mSystem;
 
     };
 

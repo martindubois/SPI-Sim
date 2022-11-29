@@ -19,6 +19,12 @@
 // ===== Includes ===========================================================
 #include <SPI-Sim/Simulator.h>
 
+// ===== Local ==============================================================
+#include "../Common/Protocol.h"
+#include "../Common/Version.h"
+
+using namespace KMS;
+
 // Configuration
 // //////////////////////////////////////////////////////////////////////////
 
@@ -27,11 +33,9 @@
 // Constants
 // //////////////////////////////////////////////////////////////////////////
 
-static const KMS::Cfg::MetaData MD_CHIPS("Chips += {Type}");
+static const Cfg::MetaData MD_CHIPS("Chips += {Type}");
 
 #define MSG_CHIPS_CHANGED (1)
-#define MSG_RECEIVE       (2)
-#define MSG_SEND          (3)
 
 namespace SPI_Sim
 {
@@ -48,16 +52,16 @@ namespace SPI_Sim
 
         try
         {
-            KMS::Cfg::Configurator lC;
-            KMS::Installer         lInstaller;
-            Simulator              lS;
+            Cfg::Configurator lC;
+            Installer         lInstaller;
+            Simulator         lS;
 
             lC.AddConfigurable(&lInstaller);
             lC.AddConfigurable(&lS);
 
-            lC.AddConfigurable(&KMS::Dbg::gLog);
+            lC.AddConfigurable(&Dbg::gLog);
 
-            lC.ParseFile(KMS::File::Folder::CURRENT, CONFIG_FILE);
+            lC.ParseFile(File::Folder::CURRENT, CONFIG_FILE);
             lC.ParseArguments(aCount - 1, aVector + 1);
 
             lInstaller.Run();
@@ -71,15 +75,17 @@ namespace SPI_Sim
 
     Simulator::Simulator()
         : mChipCount(0)
-        , mReceiver(&mSystem, mInstances, 3)
-        , mSender  (&mSystem, mInstances, 3)
+        , mLink(&mSystem, &mPort)
+        , mSystem(VERSION, PROTOCOL_MAGIC, PROTOCOL_VERSION)
     {
         mInstances[0] = &mDigitalInputs;
         mInstances[1] = &mDigitalOutputs;
         mInstances[2] = &mChipTypes;
 
+        mSystem.SetInstances(mInstances, INSTANCE_CHIP_FIRST);
+
         mChips.mOnChanged.Set(this, MSG_CHIPS_CHANGED);
-        mChips.SetCreator(KMS::DI::UInt<uint16_t>::Create);
+        mChips.SetCreator(DI::UInt<uint16_t>::Create);
 
         AddEntry("Chips", &mChips, false, &MD_CHIPS);
         AddEntry("Port" , &mPort , false);
@@ -103,11 +109,10 @@ namespace SPI_Sim
 
         lInstanceCount++;
 
-        mReceiver.SetInstanceCount(lInstanceCount);
-        mSender  .SetInstanceCount(lInstanceCount);
+        mSystem.SetInstances(mInstances, lInstanceCount);
     }
 
-    // ===== KMS::Msg::Receive ==============================================
+    // ===== Msg::Receive ===================================================
 
     unsigned int Simulator::Receive(void* aSender, unsigned int aCode, void* aData)
     {
@@ -116,14 +121,12 @@ namespace SPI_Sim
         switch (aCode)
         {
         case MSG_CHIPS_CHANGED: lResult = OnChipsChanged(); break;
-        case MSG_RECEIVE      : lResult = OnReceive     (); break;
-        case MSG_SEND         : lResult = OnSend        (); break;
         }
 
         return lResult;
     }
 
-    // ===== KMS::CLI::Tool =============================================
+    // ===== CLI::Tool ======================================================
 
     void Simulator::DisplayHelp(FILE* aOut) const
     {
@@ -141,7 +144,7 @@ namespace SPI_Sim
             "Start\n"
             "Stop\n");
 
-        return KMS::CLI::Tool::DisplayHelp(aOut);
+        return CLI::Tool::DisplayHelp(aOut);
     }
 
     void Simulator::ExecuteCommand(const char* aC)
@@ -149,7 +152,7 @@ namespace SPI_Sim
         char         lCmd[LINE_LENGTH];
         unsigned int lIndex;
 
-        if (0 == strcmp(aC, "Connect"   )) { mPort.Connect(0); return; }
+        if (0 == strcmp(aC, "Connect"   )) { mPort.Connect(Dev::Device::FLAG_READ_ACCESS | Dev::Device::FLAG_WRITE_ACCESS); return; }
         if (0 == strcmp(aC, "Disconnect")) { mPort.Disconnect(); return; }
         if (0 == strcmp(aC, "Dump"      )) { Dump (); return; }
         if (0 == strcmp(aC, "Start"     )) { Start(); return; }
@@ -162,7 +165,7 @@ namespace SPI_Sim
         if (1 == sscanf_s(aC, "DO_Get %u\n"  , &lIndex)) { DO_Get  (lIndex); return; }
         if (1 == sscanf_s(aC, "DO_Set %u\n"  , &lIndex)) { DO_Set  (lIndex); return; }
 
-        KMS::CLI::Tool::ExecuteCommand(aC);
+        CLI::Tool::ExecuteCommand(aC);
     }
 
     // Private
@@ -172,7 +175,7 @@ namespace SPI_Sim
     {
         KMS_EXCEPTION_ASSERT(mChipCount > aIndex, APPLICATION_USER_ERROR, "Invalid index", aIndex);
 
-        KMS::DI::Object* lObject = mChips.GetEntry_RW(aIndex);
+        DI::Object* lObject = mChips.GetEntry_RW(aIndex);
         assert(NULL != lObject);
 
         Chip* lResult = dynamic_cast<Chip*>(lObject);
@@ -187,10 +190,10 @@ namespace SPI_Sim
     {
         if (mChips.GetCount() > mChipCount)
         {
-            const KMS::DI::Object* lObject = mChips.GetEntry_R(mChipCount);
+            const DI::Object* lObject = mChips.GetEntry_R(mChipCount);
             assert(NULL != lObject);
 
-            const KMS::DI::UInt<uint16_t>* lType = dynamic_cast<const KMS::DI::UInt<uint16_t>*>(lObject);
+            const DI::UInt<uint16_t>* lType = dynamic_cast<const DI::UInt<uint16_t>*>(lObject);
             assert(NULL != lType);
 
             Chip* lChip = Chip::Create(lType->Get());
@@ -211,30 +214,6 @@ namespace SPI_Sim
         return 0;
     }
 
-    unsigned int Simulator::OnReceive()
-    {
-        uint8_t lBuffer[262];
-
-        unsigned int lSize_byte = mPort.Read(lBuffer, sizeof(lBuffer), 0);
-        if (0 < lSize_byte)
-        {
-            mReceiver.AddReceivedBytes(lBuffer, lSize_byte);
-        }
-
-        return 0;
-    }
-
-    unsigned int Simulator::OnSend()
-    {
-        const KMS::WOP::FrameBuffer* lFB = mSender.PrepareFrame();
-        if (NULL != lFB)
-        {
-            mPort.Write(lFB->GetRawFrame(), lFB->GetFrameSize_byte());
-        }
-
-        return 0;
-    }
-
     // ===== Commands =======================================================
 
     void Simulator::ChipCommand(unsigned int aId, const char* aCmd)
@@ -246,8 +225,8 @@ namespace SPI_Sim
     {
         if (mDigitalInputs.GetCount() <= aId)
         {
-            std::cout << KMS::Console::Color::RED;
-            std::cout << "USER ERROR  Invalid id" << KMS::Console::Color::WHITE << std::endl;
+            std::cout << Console::Color::RED;
+            std::cout << "USER ERROR  Invalid id" << Console::Color::WHITE << std::endl;
             return;
         }
 
@@ -258,8 +237,8 @@ namespace SPI_Sim
     {
         if (mDigitalOutputs.GetCount() <= aId)
         {
-            std::cout << KMS::Console::Color::RED;
-            std::cout << "USER ERROR  Invalid id" << KMS::Console::Color::WHITE << std::endl;
+            std::cout << Console::Color::RED;
+            std::cout << "USER ERROR  Invalid id" << Console::Color::WHITE << std::endl;
             return;
         }
 
@@ -272,8 +251,8 @@ namespace SPI_Sim
     {
         if (mDigitalOutputs.GetCount() <= aId)
         {
-            std::cout << KMS::Console::Color::RED;
-            std::cout << "USER ERROR  Invalid id" << KMS::Console::Color::WHITE << std::endl;
+            std::cout << Console::Color::RED;
+            std::cout << "USER ERROR  Invalid id" << Console::Color::WHITE << std::endl;
             return;
         }
 
@@ -284,8 +263,8 @@ namespace SPI_Sim
     {
         if (mDigitalOutputs.GetCount() <= aId)
         {
-            std::cout << KMS::Console::Color::RED;
-            std::cout << "USER ERROR  Invalid id" << KMS::Console::Color::WHITE << std::endl;
+            std::cout << Console::Color::RED;
+            std::cout << "USER ERROR  Invalid id" << Console::Color::WHITE << std::endl;
             return;
         }
 
@@ -299,7 +278,7 @@ namespace SPI_Sim
         mDigitalInputs .Dump();
         mDigitalOutputs.Dump();
 
-        for (KMS::DI::Container::Entry& lEntry : mChips.mInternal)
+        for (DI::Container::Entry& lEntry : mChips.mInternal)
         {
             Chip* lChip = dynamic_cast<Chip*>(lEntry.Get());
             assert(NULL != lChip);
@@ -310,19 +289,16 @@ namespace SPI_Sim
 
     void Simulator::Stop()
     {
-        mThread_Receiver.Stop();
-        mThread_Sender  .Stop();
-
-        mThread_Receiver.Wait(2000);
-        mThread_Sender  .Wait(1000);
+        mLink.Stop();
 
         std::cout << "Stopped" << std::endl;
     }
 
     void Simulator::Start()
     {
-        mThread_Receiver.Start();
-        mThread_Sender  .Start();
+        mLink.Start();
+
+        std::cout << "Started" << std::endl;
     }
 
 }
