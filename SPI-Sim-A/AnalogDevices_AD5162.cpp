@@ -13,6 +13,8 @@
 // ===== Common =============================================================
 #include "../Common/Protocol.h"
 
+using namespace KMS;
+
 namespace SPI_Sim
 {
     namespace AnalogDevices
@@ -21,20 +23,20 @@ namespace SPI_Sim
         // Public
         // //////////////////////////////////////////////////////////////////
 
-        const KMS::DAQ::Id AD5162::ID_AI_R_A1_W1 = 0;
-        const KMS::DAQ::Id AD5162::ID_AI_R_B1_W1 = 1;
-        const KMS::DAQ::Id AD5162::ID_AI_R_B2_W2 = 2;
+        const DAQ::Id AD5162::ID_AI_R_A1_W1 = 0;
+        const DAQ::Id AD5162::ID_AI_R_B1_W1 = 1;
+        const DAQ::Id AD5162::ID_AI_R_B2_W2 = 2;
 
         AD5162::AD5162(float aEndToEnd_ohm)
             : Chip(CHIP_ANALOG_DEVICES_AD5162, "AnalogDevices", "AD5162")
             , mEndToEnd_ohm(aEndToEnd_ohm)
         {}
 
-        // ===== KMS::DAQ::IAnalogInputs ====================================
+        // ===== DAQ::IAnalogInputs =========================================
 
-        KMS::DAQ::AnalogValue AD5162::AI_Read(KMS::DAQ::Id aId)
+        DAQ::AnalogValue AD5162::AI_Read(DAQ::Id aId)
         {
-            KMS::DAQ::AnalogValue lResult_ohm = AI_Read_Raw(aId);
+            DAQ::AnalogValue lResult_ohm = AI_Read_Raw(aId);
 
             lResult_ohm /= 0xff;
             lResult_ohm *= mEndToEnd_ohm;
@@ -42,9 +44,9 @@ namespace SPI_Sim
             return lResult_ohm;
         }
 
-        KMS::DAQ::AnalogValue_Raw AD5162::AI_Read_Raw(KMS::DAQ::Id aId)
+        DAQ::AnalogValue_Raw AD5162::AI_Read_Raw(DAQ::Id aId)
         {
-            KMS::DAQ::AnalogValue_Raw lResult;
+            DAQ::AnalogValue_Raw lResult;
 
             switch (aId)
             {

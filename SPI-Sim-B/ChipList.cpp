@@ -62,7 +62,7 @@ unsigned int ChipList::Receive(void* aSender, unsigned int aCode, void* aData)
     return lResult;
 }
 
-// ===== KMS::WOP::BitArray<uint16_t> =======================================
+// ===== WOP::BitArray<uint16_t> ============================================
 
 uint8_t ChipList::WriteData(const WOP::FrameBuffer* aIn)
 {

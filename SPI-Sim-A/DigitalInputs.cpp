@@ -10,6 +10,8 @@
 // ===== Includes ===========================================================
 #include <SPI-Sim/DigitalInputs.h>
 
+using namespace KMS;
+
 namespace SPI_Sim
 {
 
@@ -30,8 +32,8 @@ namespace SPI_Sim
         std::cout << std::endl;
     }
 
-    // ===== KMS::DAQ::IDigitalInputs =======================================
+    // ===== DAQ::IDigitalInputs ============================================
 
-    bool DigitalInputs::DI_Read(KMS::DAQ::Id aId) { return TestBits(1 << aId); }
+    bool DigitalInputs::DI_Read(DAQ::Id aId) { return TestBits(1 << aId); }
 
 }

@@ -10,6 +10,8 @@
 // ===== Includes ===========================================================
 #include <SPI-Sim/DigitalOutputs.h>
 
+using namespace KMS;
+
 namespace SPI_Sim
 {
 
@@ -30,13 +32,13 @@ namespace SPI_Sim
         std::cout << std::endl;
     }
 
-    // ===== KMS::DAQ::IDigitalInputs =======================================
+    // ===== DAQ::IDigitalInputs ============================================
 
-    void DigitalOutputs::DO_Clear(KMS::DAQ::Id aId) { ClearBits(1 << aId); }
+    void DigitalOutputs::DO_Clear(DAQ::Id aId) { ClearBits(1 << aId); }
 
-    bool DigitalOutputs::DO_Get(KMS::DAQ::Id aId) const { return TestBits(1 << aId); }
+    bool DigitalOutputs::DO_Get(DAQ::Id aId) const { return TestBits(1 << aId); }
 
-    void DigitalOutputs::DO_Set(KMS::DAQ::Id aId, bool aValue)
+    void DigitalOutputs::DO_Set(DAQ::Id aId, bool aValue)
     {
         uint16_t lBit = 1 << aId;
 

@@ -19,7 +19,7 @@ Input::Input() : mIOs(NULL) {}
 
 void Input::SetIOs(DAQ::DigitalInput* aIOs) { mIOs = aIOs; }
 
-// ===== KMS::Embedded::WorkItem ============================================
+// ===== Embedded::WorkItem =================================================
 
 void Input::Work()
 {

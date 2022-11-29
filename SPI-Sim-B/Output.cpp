@@ -19,9 +19,9 @@ Output::Output() : mIOs(NULL) {}
 
 void Output::SetIOs(DAQ::DigitalOutput* aIOs) { mIOs = aIOs; }
 
-// ===== KMS::WOP::BitArray<uint16_t> =======================================
+// ===== WOP::BitArray<uint16_t> ============================================
 
-uint8_t Output::WriteData(const KMS::WOP::FrameBuffer* aIn)
+uint8_t Output::WriteData(const WOP::FrameBuffer* aIn)
 {
     uint8_t lResult = WOP::BitArray<uint16_t>::WriteData(aIn);
     if (KMS_WOP_RESULT_OK == lResult)

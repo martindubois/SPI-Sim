@@ -20,7 +20,8 @@ namespace AnalogDevices
 
     void* AD7689::operator new(size_t, void* aPtr) { return aPtr; }
 
-    // ===== KMS::Msg::IReceiver ============================================
+    // ===== Msg::IReceiver =================================================
+
     unsigned int AD7689::Receive(void* aSender, unsigned int aCode, void* aData)
     {
         unsigned int lResult = Msg::IReceiver::MSG_IGNORED;

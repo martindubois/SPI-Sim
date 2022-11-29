@@ -20,7 +20,8 @@ namespace AnalogDevices
 
     void* AD5162::operator new(size_t, void* aPtr) { return aPtr; }
 
-    // ===== KMS::Msg::IReceiver ============================================
+    // ===== Msg::IReceiver =================================================
+
     unsigned int AD5162::Receive(void* aSender, unsigned int aCode, void* aData)
     {
         unsigned int lResult = Msg::IReceiver::MSG_IGNORED;

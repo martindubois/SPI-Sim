@@ -13,6 +13,8 @@
 // ===== Common =============================================================
 #include "../Common/Protocol.h"
 
+using namespace KMS;
+
 namespace SPI_Sim
 {
     namespace AnalogDevices
@@ -21,14 +23,14 @@ namespace SPI_Sim
         // Public
         // //////////////////////////////////////////////////////////////////
 
-        const KMS::DAQ::Id AD5668::ID_AI_A = 0;
-        const KMS::DAQ::Id AD5668::ID_AI_B = 1;
-        const KMS::DAQ::Id AD5668::ID_AI_C = 2;
-        const KMS::DAQ::Id AD5668::ID_AI_D = 3;
-        const KMS::DAQ::Id AD5668::ID_AI_E = 4;
-        const KMS::DAQ::Id AD5668::ID_AI_F = 5;
-        const KMS::DAQ::Id AD5668::ID_AI_G = 6;
-        const KMS::DAQ::Id AD5668::ID_AI_H = 7;
+        const DAQ::Id AD5668::ID_AI_A = 0;
+        const DAQ::Id AD5668::ID_AI_B = 1;
+        const DAQ::Id AD5668::ID_AI_C = 2;
+        const DAQ::Id AD5668::ID_AI_D = 3;
+        const DAQ::Id AD5668::ID_AI_E = 4;
+        const DAQ::Id AD5668::ID_AI_F = 5;
+        const DAQ::Id AD5668::ID_AI_G = 6;
+        const DAQ::Id AD5668::ID_AI_H = 7;
 
         AD5668::AD5668(float aRef_V)
             : Chip(CHIP_ANALOG_DEVICES_AD7689, "AnalogDevices", "AD5668")
@@ -37,11 +39,11 @@ namespace SPI_Sim
             assert(0.0 < aRef_V);
         }
 
-        // ===== KMS::DAQ::IAnalogInputs ====================================
+        // ===== DAQ::IAnalogInputs =========================================
 
-        KMS::DAQ::AnalogValue AD5668::AI_Read(KMS::DAQ::Id aId)
+        DAQ::AnalogValue AD5668::AI_Read(DAQ::Id aId)
         {
-            KMS::DAQ::AnalogValue lResult_V = AI_Read_Raw(aId);
+            DAQ::AnalogValue lResult_V = AI_Read_Raw(aId);
 
             lResult_V /= 0xffff;
             lResult_V *= mRef_V;
@@ -49,7 +51,7 @@ namespace SPI_Sim
             return lResult_V;
         }
 
-        KMS::DAQ::AnalogValue_Raw AD5668::AI_Read_Raw(KMS::DAQ::Id aId)
+        DAQ::AnalogValue_Raw AD5668::AI_Read_Raw(DAQ::Id aId)
         {
             return GetValue(aId);
         }
