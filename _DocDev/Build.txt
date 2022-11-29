@@ -16,13 +16,8 @@ Computer            _________________________________________________________
 Version             ______ . ______ . ______ . ______ - _____________________
 
 [ ] Search for "EDIT ON BUILD"
-
-[ ] File "_DocUser/SPI-Sim.ReadMe.txt"
-
-[ ] File "SPI-Sim/_DocUser/SPI-Sim.SPI-Sim-A.ReadMe.txt"
-[ ] File "SPI-Sim-A/_DocUser/SPI-Sim.SPI-Sim-A.ReadMe.txt"
 [ ] Tools "PowerShell" - In the product folder
-        .\x64\Debug\KMS-Build.exe
+        .\Import\Binaries\Release_x64\KMS-Build.exe
 [ ] Tools "GIT GUI"
     - Commit all modified File with {Ma}.{Mi}.{Bu}[-{Type}] Linux|Windows as
       message
