@@ -13,6 +13,8 @@
 // ===== Common =============================================================
 #include "../Common/Protocol.h"
 
+using namespace KMS;
+
 namespace SPI_Sim
 {
     namespace AnalogDevices
@@ -21,14 +23,15 @@ namespace SPI_Sim
         // Public
         // //////////////////////////////////////////////////////////////////
 
-        const KMS::DAQ::Id AD7689::ID_AO_0 = 0;
-        const KMS::DAQ::Id AD7689::ID_AO_1 = 1;
-        const KMS::DAQ::Id AD7689::ID_AO_2 = 2;
-        const KMS::DAQ::Id AD7689::ID_AO_3 = 3;
-        const KMS::DAQ::Id AD7689::ID_AO_4 = 4;
-        const KMS::DAQ::Id AD7689::ID_AO_5 = 5;
-        const KMS::DAQ::Id AD7689::ID_AO_6 = 6;
-        const KMS::DAQ::Id AD7689::ID_AO_7 = 7;
+        const DAQ::Id AD7689::ID_AO_0 = 0;
+        const DAQ::Id AD7689::ID_AO_1 = 1;
+        const DAQ::Id AD7689::ID_AO_2 = 2;
+        const DAQ::Id AD7689::ID_AO_3 = 3;
+        const DAQ::Id AD7689::ID_AO_4 = 4;
+        const DAQ::Id AD7689::ID_AO_5 = 5;
+        const DAQ::Id AD7689::ID_AO_6 = 6;
+        const DAQ::Id AD7689::ID_AO_7 = 7;
+        const DAQ::Id AD7689::ID_AO_8 = 8;
 
         AD7689::AD7689(float aRef_V)
             : Chip(CHIP_ANALOG_DEVICES_AD7689, "AnalogDevices", "AD7689")
@@ -37,11 +40,11 @@ namespace SPI_Sim
             assert(0.0 < aRef_V);
         }
 
-        // ===== KMS::DAQ::IAnalogOutputs ===================================
+        // ===== DAQ::IAnalogOutputs ========================================
 
-        KMS::DAQ::AnalogValue AD7689::AO_Get(KMS::DAQ::Id aId) const
+        DAQ::AnalogValue AD7689::AO_Get(DAQ::Id aId) const
         {
-            KMS::DAQ::AnalogValue lResult_V = AO_Get_Raw(aId);
+            DAQ::AnalogValue lResult_V = AO_Get_Raw(aId);
 
             lResult_V /= 0xffff;
             lResult_V *= mRef_V;
@@ -49,14 +52,14 @@ namespace SPI_Sim
             return lResult_V;
         }
 
-        KMS::DAQ::AnalogValue_Raw AD7689::AO_Get_Raw(KMS::DAQ::Id aId) const
+        DAQ::AnalogValue_Raw AD7689::AO_Get_Raw(DAQ::Id aId) const
         {
             return GetValue(aId);
         }
 
-        void AD7689::AO_Write(KMS::DAQ::Id aId, KMS::DAQ::AnalogValue aValue_V)
+        void AD7689::AO_Write(DAQ::Id aId, DAQ::AnalogValue aValue_V)
         {
-            KMS::DAQ::AnalogValue lValue;
+            DAQ::AnalogValue lValue;
 
             if (0.0 > aValue_V)
             {
@@ -74,10 +77,10 @@ namespace SPI_Sim
             lValue /= mRef_V;
             lValue *= 0xffff;
 
-            AO_Write_Raw(aId, static_cast<KMS::DAQ::AnalogValue_Raw>(lValue));
+            AO_Write_Raw(aId, static_cast<DAQ::AnalogValue_Raw>(lValue));
         }
 
-        void AD7689::AO_Write_Raw(KMS::DAQ::Id aId, KMS::DAQ::AnalogValue_Raw aValue)
+        void AD7689::AO_Write_Raw(DAQ::Id aId, DAQ::AnalogValue_Raw aValue)
         {
             SetValue(aId, aValue);
         }

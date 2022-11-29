@@ -19,7 +19,7 @@ namespace SPI_Sim
     namespace AnalogDevices
     {
 
-        class AD7689 : public Chip, public KMS::WOP::ValueArray<uint16_t, 8>, public KMS::DAQ::IAnalogOutputs
+        class AD7689 : public Chip, public KMS::WOP::ValueArray<uint16_t, 9>, public KMS::DAQ::IAnalogOutputs
         {
 
         public:
@@ -32,6 +32,7 @@ namespace SPI_Sim
             static const KMS::DAQ::Id ID_AO_5;
             static const KMS::DAQ::Id ID_AO_6;
             static const KMS::DAQ::Id ID_AO_7;
+            static const KMS::DAQ::Id ID_AO_8;
 
             AD7689(float aRef_V = 2.5);
 
