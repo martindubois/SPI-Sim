@@ -3,8 +3,8 @@
 # Copyright (C) 2022 KMS
 # License   http://www.apache.org/licenses/LICENSE-2.0
 # Product   SPI-Sim
-# File      KMS-Import.cfg
+# File      STM32/Debug.mk
 
-OSIndependentDeps += KMS-Framework;0.1.26-stm32f373vctx
+include ../../Common.mk
 
-WindowsDependencies += KMS-Framework;0.1.17-dev
+CFLAGS += -DDEBUG -O0
