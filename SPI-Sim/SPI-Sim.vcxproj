@@ -21,6 +21,9 @@
   <ItemGroup>
     <ClCompile Include="SPI-Sim.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\Common\Version.rc" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
