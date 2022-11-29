@@ -5,6 +5,8 @@
 // Product   SPI-Sim
 // File      SPI-Sim-A/AnalogDevices_AD7689.cpp
 
+// TEST COVERAGE 2022-11-29 KMS - Martin Dubois, P. Eng.
+
 #include "Component.h"
 
 // ===== Includes ===========================================================
@@ -44,6 +46,8 @@ namespace SPI_Sim
 
         DAQ::AnalogValue AD7689::AO_Get(DAQ::Id aId) const
         {
+            KMS_EXCEPTION_ASSERT(9 > aId, APPLICATION_ERROR, "Invalid Id", aId);
+
             DAQ::AnalogValue lResult_V = AO_Get_Raw(aId);
 
             lResult_V /= 0xffff;
@@ -65,7 +69,7 @@ namespace SPI_Sim
             {
                 lValue = 0.0;
             }
-            else if (mRef_V > aValue_V)
+            else if (mRef_V < aValue_V)
             {
                 lValue = mRef_V;
             }
@@ -83,6 +87,38 @@ namespace SPI_Sim
         void AD7689::AO_Write_Raw(DAQ::Id aId, DAQ::AnalogValue_Raw aValue)
         {
             SetValue(aId, aValue);
+        }
+
+        // ===== Chip =======================================================
+
+        WOP::Object* AD7689::GetInstance() { return this; }
+
+        void AD7689::Dump()
+        {
+            Chip::Dump();
+
+            for (uint8_t i = 0; i < 9; i++)
+            {
+                std::cout << "  Channel " << static_cast<unsigned int>(i) << " = " << AO_Get(i) << " V\n";
+            }
+
+            std::cout << std::endl;
+        }
+
+        void AD7689::ExecuteCommand(const char* aCmd)
+        {
+            unsigned int lChannel;
+            float        lValue_V;
+
+            if (2 == sscanf_s(aCmd, "AO_Write %u %f", &lChannel, &lValue_V))
+            {
+                AO_Write(lChannel, lValue_V);
+                std::cout << "Written\n" << std::endl;
+            }
+            else
+            {
+                Chip::ExecuteCommand(aCmd);
+            }
         }
 
     }

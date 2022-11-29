@@ -5,6 +5,8 @@
 // Product   SPI-Sim
 // File      SPI-Sim-A/DigitalInputs.cpp
 
+// TEST COVERAGE 2022-11-29 KMS - Martin Dubois, P. Eng.
+
 #include "Component.h"
 
 // ===== Includes ===========================================================

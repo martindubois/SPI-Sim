@@ -5,6 +5,8 @@
 // Product   SPI-Sim
 // File      SPI-Sim-A/DigitalOutputs.cpp
 
+// TEST COVERAGE 2022-11-29 KMS - Martin Dubois, P. Eng.
+
 #include "Component.h"
 
 // ===== Includes ===========================================================
@@ -48,6 +50,7 @@ namespace SPI_Sim
         }
         else
         {
+            // NOT TESTED
             ClearBits(lBit);
         }
     }

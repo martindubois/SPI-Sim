@@ -9,6 +9,7 @@
 
 // ===== Import/Includes ====================================================
 #include <KMS/DI/Dictionary.h>
+#include <KMS/WOP/Object.h>
 
 namespace SPI_Sim
 {
@@ -25,6 +26,8 @@ namespace SPI_Sim
         const char* GetManufacturer() const;
 
         const char* GetName() const;
+
+        virtual KMS::WOP::Object* GetInstance() = 0;
 
         virtual void Dump();
 

@@ -42,6 +42,11 @@ namespace SPI_Sim
             virtual void                      AO_Write    (KMS::DAQ::Id aId, KMS::DAQ::AnalogValue     aValue_V);
             virtual void                      AO_Write_Raw(KMS::DAQ::Id aId, KMS::DAQ::AnalogValue_Raw aValue);
 
+            // ===== Chip ===================================================
+            virtual KMS::WOP::Object* GetInstance();
+            virtual void Dump();
+            virtual void ExecuteCommand(const char* aCmd);
+
         private:
 
             float mRef_V;

@@ -5,6 +5,8 @@
 // Product   SPI-Sim
 // File      SPI-Sim-A/Chip.cpp
 
+// TEST COVERAGE 2022-11-29 KMS - Martin Dubois, P. Eng.
+
 #include "Component.h"
 
 // ===== Includes ===========================================================
@@ -44,7 +46,7 @@ namespace SPI_Sim
     {
         std::cout << "Manufacturer : " << mManufacturer << "\n";
         std::cout << "Name         : " << mName << "\n";
-        std::cout << "Type         : 0x" << std::hex << mType << std::dec << std::endl;
+        std::cout << "Type         : 0x" << std::hex << mType << std::dec << "\n" << std::endl;
     }
 
     void Chip::ExecuteCommand(const char* aCmd)

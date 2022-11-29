@@ -5,6 +5,8 @@
 // Product   SPI-Sim
 // File      SPI-Sim-A/Simulator.cpp
 
+// TEST COVERAGE 2022-11-29 KMS - Martin Dubois, P. Eng.
+
 #include "Component.h"
 
 // ===== Import/Includes ====================================================
@@ -101,9 +103,9 @@ namespace SPI_Sim
 
         mChips.SetEntry(mChipCount, aChip, true);
 
-        unsigned int lInstanceCount = 3 + mChipCount;
+        unsigned int lInstanceCount = INSTANCE_CHIP_FIRST + mChipCount;
 
-        mInstances[lInstanceCount];
+        mInstances[lInstanceCount] = aChip->GetInstance();
 
         mChipCount++;
 
@@ -199,12 +201,13 @@ namespace SPI_Sim
             Chip* lChip = Chip::Create(lType->Get());
             if (NULL == lChip)
             {
-                // TODO mChips.RemoveEntry(mChipCount);
+                mChips.RemoveEntry(mChipCount);
                 KMS_EXCEPTION(APPLICATION_USER_ERROR, "Invalid chip type", lType->Get());
             }
 
             AddChip(lChip);
         }
+        // NOT TESTED
         else if (mChips.GetCount() == 0)
         {
             mChipCount = 0;
@@ -230,7 +233,7 @@ namespace SPI_Sim
             return;
         }
 
-        std::cout << "DI #" << aId << " = " << (mDigitalInputs.DI_Read(aId) ? "true" : "false") << std::endl;
+        std::cout << "DI #" << aId << " = " << (mDigitalInputs.DI_Read(aId) ? "true" : "false") << "\n" << std::endl;
     }
 
     void Simulator::DO_Clear(unsigned int aId)
@@ -238,7 +241,7 @@ namespace SPI_Sim
         if (mDigitalOutputs.GetCount() <= aId)
         {
             std::cout << Console::Color::RED;
-            std::cout << "USER ERROR  Invalid id" << Console::Color::WHITE << std::endl;
+            std::cout << "USER ERROR  Invalid id" << Console::Color::WHITE << "\n" << std::endl;
             return;
         }
 
@@ -270,7 +273,7 @@ namespace SPI_Sim
 
         mDigitalOutputs.DO_Set(aId);
 
-        std::cout << "Set" << std::endl;
+        std::cout << "Set\n" << std::endl;
     }
 
     void Simulator::Dump()
@@ -291,14 +294,14 @@ namespace SPI_Sim
     {
         mLink.Stop();
 
-        std::cout << "Stopped" << std::endl;
+        std::cout << "Stopped\n" << std::endl;
     }
 
     void Simulator::Start()
     {
         mLink.Start();
 
-        std::cout << "Started" << std::endl;
+        std::cout << "Started\n" << std::endl;
     }
 
 }

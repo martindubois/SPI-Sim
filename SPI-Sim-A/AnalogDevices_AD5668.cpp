@@ -5,6 +5,8 @@
 // Product   SPI-Sim
 // File      SPI-Sim-A/AnalogDevices_AD5668.cpp
 
+// TEST COVERAGE 2022-11-29 KMS - Martin Dubois, P. Eng.
+
 #include "Component.h"
 
 // ===== Includes ===========================================================
@@ -33,7 +35,7 @@ namespace SPI_Sim
         const DAQ::Id AD5668::ID_AI_H = 7;
 
         AD5668::AD5668(float aRef_V)
-            : Chip(CHIP_ANALOG_DEVICES_AD7689, "AnalogDevices", "AD5668")
+            : Chip(CHIP_ANALOG_DEVICES_AD5668, "AnalogDevices", "AD5668")
             , mRef_V(aRef_V)
         {
             assert(0.0 < aRef_V);
@@ -54,6 +56,22 @@ namespace SPI_Sim
         DAQ::AnalogValue_Raw AD5668::AI_Read_Raw(DAQ::Id aId)
         {
             return GetValue(aId);
+        }
+
+        // ===== Chip =======================================================
+
+        WOP::Object* AD5668::GetInstance() { return this; }
+
+        void AD5668::Dump()
+        {
+            Chip::Dump();
+
+            for (uint8_t i = 0; i < 8; i++)
+            {
+                std::cout << "  Channel " << ('A' + i) << " = " << AI_Read(i) << " V\n";
+            }
+
+            std::cout << std::endl;
         }
 
     }

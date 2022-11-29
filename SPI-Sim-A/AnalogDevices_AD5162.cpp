@@ -5,6 +5,8 @@
 // Product   SPI-Sim
 // File      SPI-Sim-A/AnalogDevices_AD5162.cpp
 
+// TEST COVERAGE 2022-11-29 KMS - Martin Dubois, P. Eng.
+
 #include "Component.h"
 
 // ===== Includes ===========================================================
@@ -54,7 +56,9 @@ namespace SPI_Sim
             case ID_AI_R_B1_W1: lResult = this->GetValue(0); break;
             case ID_AI_R_B2_W2: lResult = this->GetValue(1); break;
 
-            default: KMS_EXCEPTION(APPLICATION_ERROR, "Invalid analog input id", "");
+            default:
+                // NOT TESTED
+                KMS_EXCEPTION(APPLICATION_ERROR, "Invalid analog input id", "");
             }
 
             return lResult;
@@ -62,13 +66,15 @@ namespace SPI_Sim
 
         // ===== Chip =======================================================
 
+        WOP::Object* AD5162::GetInstance() { return this; }
+
         void AD5162::Dump()
         {
             Chip::Dump();
 
-            std::cout << "R A1 to W1 = " << AI_Read(ID_AI_R_A1_W1) << " ohm\n";
-            std::cout << "R B1 to W1 = " << AI_Read(ID_AI_R_B1_W1) << " ohm\n";
-            std::cout << "R B2 to W2 = " << AI_Read(ID_AI_R_B2_W2) << " ohm" << std::endl;
+            std::cout << "  R A1 to W1 = " << AI_Read(ID_AI_R_A1_W1) << " ohm\n";
+            std::cout << "  R B1 to W1 = " << AI_Read(ID_AI_R_B1_W1) << " ohm\n";
+            std::cout << "  R B2 to W2 = " << AI_Read(ID_AI_R_B2_W2) << " ohm" << "\n" << std::endl;
         }
     }
 }

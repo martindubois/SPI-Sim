@@ -39,6 +39,10 @@ namespace SPI_Sim
             virtual KMS::DAQ::AnalogValue     AI_Read    (KMS::DAQ::Id aId);
             virtual KMS::DAQ::AnalogValue_Raw AI_Read_Raw(KMS::DAQ::Id aId);
 
+            // ===== Chip ===================================================
+            virtual KMS::WOP::Object* GetInstance();
+            virtual void Dump();
+
         private:
 
             float mRef_V;
