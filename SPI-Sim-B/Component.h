@@ -12,8 +12,21 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+// ===== Import/Includes ====================================================
+#include <KMS/WOP/System.h>
+
+// ===== Local ==============================================================
+#include "../Common/Protocol.h"
+
 // Constants
 // //////////////////////////////////////////////////////////////////////////
 
 #define CHIP_MSG_RX (1)
 #define CHIP_MSG_TX (2)
+
+// Global variables
+// //////////////////////////////////////////////////////////////////////////
+
+// Defined in Simulator.cpp
+extern KMS::WOP::Object * gInstances[INSTANCE_CHIP_FIRST + PROTOCOL_CHIP_QTY];
+extern KMS::WOP::System   gSystem;

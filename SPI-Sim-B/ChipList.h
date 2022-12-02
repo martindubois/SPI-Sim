@@ -12,7 +12,6 @@
 #include <KMS/Embedded/SPI.h>
 #include <KMS/Msg/Destination.h>
 #include <KMS/Msg/IReceiver.h>
-#include <KMS/WOP/System.h>
 #include <KMS/WOP/ValueArray.h>
 
 class ChipList : public KMS::WOP::ValueArray<uint16_t, PROTOCOL_CHIP_QTY>, public KMS::Msg::IReceiver
@@ -28,8 +27,6 @@ public:
 
     void SetSPI(KMS::Embedded::SPI* aSPI);
 
-    void SetSystem(KMS::WOP::System* aSystem, KMS::WOP::Object** aInstances);
-
     // ===== Msg::IReceiver =================================================
     unsigned int Receive(void* aSender, unsigned int aCode, void* aData);
 
@@ -42,10 +39,8 @@ private:
 
     uint8_t                 mConnected;
     uint8_t                 mCount;
-    KMS::WOP::Object     ** mInstances;
     KMS::DAQ::DigitalInput* mIOs;
     KMS::Msg::IReceiver   * mReceivers[PROTOCOL_CHIP_QTY];
     KMS::Embedded::SPI    * mSPI;
-    KMS::WOP::System      * mSystem;
 
 };

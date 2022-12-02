@@ -43,10 +43,8 @@ public:
 
 private:
 
-    KMS::WOP::Object      * mInstances[INSTANCE_CHIP_FIRST + PROTOCOL_CHIP_QTY];
     IOMap                 * mIOMap;
     KMS::WOP::Link_USART    mLink;
-    KMS::WOP::System        mSystem;
     KMS::Embedded::WorkLoop mWorkLoop;
 
 };

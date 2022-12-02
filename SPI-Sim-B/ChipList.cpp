@@ -8,8 +8,6 @@
 #include "Component.h"
 
 // ===== Local ==============================================================
-#include "../Common/Protocol.h"
-
 #include "AnalogDevices_AD5162.h"
 #include "AnalogDevices_AD5668.h"
 #include "AnalogDevices_AD7689.h"
@@ -35,18 +33,12 @@ static uint8_t sMemSlots[PROTOCOL_CHIP_QTY][32];
 
 ChipList::ChipList()
     : ON_INTERRUPT(this, MSG_INTERRUPT)
-    , mConnected(UNCONNECTED), mCount(0), mInstances(NULL), mIOs(NULL), mSPI(NULL), mSystem(NULL)
+    , mConnected(UNCONNECTED), mCount(0), mIOs(NULL), mSPI(NULL)
 {}
 
 void ChipList::SetIOs(DAQ::DigitalInput* aIOs) { mIOs = aIOs; }
 
 void ChipList::SetSPI(Embedded::SPI* aSPI) { mSPI = aSPI; }
-
-void ChipList::SetSystem(WOP::System* aSystem, WOP::Object** aInstances)
-{
-    mInstances = aInstances;
-    mSystem    = aSystem;
-}
 
 // ===== Msg::IReceiver =====================================================
 
@@ -66,16 +58,20 @@ unsigned int ChipList::Receive(void* aSender, unsigned int aCode, void* aData)
 
 uint8_t ChipList::WriteData(const WOP::FrameBuffer* aIn)
 {
+    gSystem.AddTrace("Z", 1);
     uint8_t lResult = WOP::ValueArray<uint16_t, 10>::WriteData(aIn);
     if (KMS_WOP_RESULT_OK == lResult)
     {
+        gSystem.AddTrace("Y", 1);
         if (0 == GetValue(0))
         {
+            gSystem.AddTrace("X", 1);
             mCount = 0;
-            mSystem->SetInstances(mInstances, INSTANCE_CHIP_FIRST);
+            gSystem.SetInstances(gInstances, INSTANCE_CHIP_FIRST);
         }
         else
         {
+            gSystem.AddTrace("W", 1);
             uint16_t lType = GetValue(mCount);
             if (0 != lType)
             {
@@ -90,16 +86,18 @@ uint8_t ChipList::WriteData(const WOP::FrameBuffer* aIn)
 
                 if (NULL == lInstance)
                 {
+                    gSystem.AddTrace("V", 1);
                     // TODO APPLICATION_ERROR
                     SetValue(mCount, 0);
                     lResult = KMS_WOP_RESULT_INVALID_DATA_TYPE;
                 }
                 else
                 {
-                    mInstances[INSTANCE_CHIP_FIRST + mCount] = lInstance;
+                    gSystem.AddTrace("U", 1);
+                    gInstances[INSTANCE_CHIP_FIRST + mCount] = lInstance;
 
                     mCount++;
-                    mSystem->SetInstances(mInstances, INSTANCE_CHIP_FIRST + mCount);
+                    gSystem.SetInstances(gInstances, INSTANCE_CHIP_FIRST + mCount);
                 }
             }
         }
@@ -113,10 +111,14 @@ uint8_t ChipList::WriteData(const WOP::FrameBuffer* aIn)
 
 unsigned int ChipList::OnInterrupt()
 {
+    gSystem.AddTrace("A", 1);
+
     if (mCount > mConnected)
     {
-        if (mIOs[mConnected].Read())
+        gSystem.AddTrace("B", 1);
+        if (!mIOs[mConnected].Read())
         {
+            gSystem.AddTrace("C", 1);
             return 0;
         }
 
@@ -127,8 +129,9 @@ unsigned int ChipList::OnInterrupt()
 
     for (unsigned int i = 0; i < mCount; i++)
     {
-        if (mIOs[i].Read())
+        if (!mIOs[i].Read())
         {
+            gSystem.AddTrace("D", 1);
             mSPI->Slave_Connect(mReceivers[i], CHIP_MSG_RX, CHIP_MSG_TX);
 
             mConnected = i;

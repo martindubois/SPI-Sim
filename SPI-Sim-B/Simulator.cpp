@@ -21,6 +21,9 @@ using namespace KMS;
 // Variables
 // //////////////////////////////////////////////////////////////////////////
 
+WOP::Object* gInstances[INSTANCE_CHIP_FIRST + PROTOCOL_CHIP_QTY];
+WOP::System  gSystem(VERSION, PROTOCOL_MAGIC, PROTOCOL_VERSION);
+
 static ChipList sChips;
 static Input    sInput;
 static Output   sOutput;
@@ -31,15 +34,13 @@ static Output   sOutput;
 Simulator::Simulator(IOMap* aIOMap, Embedded::USART* aUSART, Embedded::SPI* aSPI)
     : ON_INTERRUPT(sChips.ON_INTERRUPT)
     , mIOMap(aIOMap)
-    , mLink(&mSystem, aUSART)
-    , mSystem(VERSION, PROTOCOL_MAGIC, PROTOCOL_VERSION)
+    , mLink(&gSystem, aUSART)
 {
     // assert(NULL != aIOMap);
     // assert(NULL != aUSART);
     // assert(NULL != aSPI);
 
     sChips.SetSPI(aSPI);
-    sChips.SetSystem(&mSystem, mInstances);
 
     sChips .SetIOs(aIOMap->mChipSelects);
     sInput .SetIOs(aIOMap->mInputs);
@@ -54,16 +55,14 @@ int Simulator::Run()
         mIOMap->mLEDs[i].Set(true);
     }
 
-    mInstances[INSTANCE_DIGITAL_INPUTS ] = &sInput;
-    mInstances[INSTANCE_DIGITAL_OUTPUTS] = &sOutput;
-    mInstances[INSTANCE_CHIP_TYPES     ] = &sChips;
+    gInstances[INSTANCE_DIGITAL_INPUTS ] = &sInput;
+    gInstances[INSTANCE_DIGITAL_OUTPUTS] = &sOutput;
+    gInstances[INSTANCE_CHIP_TYPES     ] = &sChips;
 
-    mSystem.SetInstances(mInstances, 3);
+    gSystem.SetInstances(gInstances, 3);
 
     Embedded::USART* lUSART = mLink.GetUSART();
     // assert(NULL != lUSART);
-
-    // TODO
 
     lUSART->Rx_Enable();
 
