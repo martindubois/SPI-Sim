@@ -205,6 +205,8 @@ namespace SPI_Sim
                 KMS_EXCEPTION(APPLICATION_USER_ERROR, "Invalid chip type", lType->Get());
             }
 
+            mChipTypes.SetValue(mChipCount, lType->Get());
+
             AddChip(lChip);
         }
         // NOT TESTED

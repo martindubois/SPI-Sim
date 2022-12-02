@@ -7,4 +7,4 @@ File      SPI-Sim/_DocUser/SPI-Sim.SPI-Sim.ReadMe.txt
 
 EDIT ON BUILD
 
-0.0.2-dev 2022-11-30
+0.0.2-dev 2022-12-01
