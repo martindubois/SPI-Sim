@@ -22,7 +22,7 @@ using namespace KMS;
 static Simulator::IOMap sIOMap;
 static STM::STM32F      sProcessor;
 
-static uint8_t CHIP_SELECTS[10] = { 0, 1, 2, 4, 5, 6, 7, 8, 9, 10 };
+static uint8_t CHIP_SELECTS[10] = { 0, 1, 2, 4, 6, 7, 8, 9, 10, 14 };
 
 // Entry point
 // //////////////////////////////////////////////////////////////////////////
@@ -80,7 +80,7 @@ int main()
     // Interrupts
     for (i = 0; i < PROTOCOL_CHIP_QTY; i++)
     {
-        sProcessor.IO_ConfigureInterrupt(KMS_STM_ID_PB(i), sSimulator.ON_INTERRUPT);
+        sProcessor.IO_ConfigureInterrupt(KMS_STM_ID_PB(CHIP_SELECTS[i]), sSimulator.ON_INTERRUPT);
     }
 
     return sSimulator.Run();
