@@ -31,21 +31,21 @@ static Output   sOutput;
 // Public
 // //////////////////////////////////////////////////////////////////////////
 
-Simulator::Simulator(IOMap* aIOMap, Embedded::USART* aUSART, Embedded::SPI* aSPI)
-    : ON_INTERRUPT(sChips.ON_INTERRUPT)
-    , mIOMap(aIOMap)
+Simulator::Simulator(IOMap* aIOMap, const uint8_t* aChipFromInt, Embedded::USART* aUSART, Embedded::SPI* aSPI)
+    : mIOMap(aIOMap)
     , mLink(&gSystem, aUSART)
 {
     // assert(NULL != aIOMap);
     // assert(NULL != aUSART);
-    // assert(NULL != aSPI);
 
-    sChips.SetSPI(aSPI);
+    sChips.Init(aChipFromInt, aSPI);
 
     sChips .SetIOs(aIOMap->mChipSelects);
     sInput .SetIOs(aIOMap->mInputs);
     sOutput.SetIOs(aIOMap->mOutputs);
 }
+
+Embedded::IInterruptHandler* Simulator::GetInterruptHandler() { return &sChips; }
 
 int Simulator::Run()
 {

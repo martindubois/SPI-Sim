@@ -20,15 +20,34 @@ namespace AnalogDevices
 
     void* AD7689::operator new(size_t, void* aPtr) { return aPtr; }
 
-    // ===== Msg::IReceiver =================================================
-
-    unsigned int AD7689::Receive(void* aSender, unsigned int aCode, void* aData)
+    // ===== Embedded::SPI::ISlave ==========================================
+    uint8_t AD7689::OnConnect(uint16_t* aWord)
     {
-        unsigned int lResult = Msg::IReceiver::MSG_IGNORED;
+        // assert(NULL != aWord);
 
         // TODO
+        return 0;
+    }
 
-        return lResult;
+    void AD7689::OnDisconnect()
+    {
+        // TODO
+    }
+
+    uint8_t AD7689::OnRxWord(uint16_t* aWord)
+    {
+        // assert(NULL != aWord);
+
+        // TODO
+        return 0;
+    }
+
+    uint8_t AD7689::OnTxReady(uint16_t* aWord)
+    {
+        // assert(NULL != aWord);
+
+        // TODO
+        return 0;
     }
 
 }

@@ -10,10 +10,9 @@
 // ===== Import/Includes ====================================================
 #include <KMS/DAQ/DigitalInput.h>
 #include <KMS/DAQ/DigitalOutput.h>
+#include <KMS/Embedded/IInterruptHandler.h>
 #include <KMS/Embedded/SPI.h>
 #include <KMS/Embedded/WorkLoop.h>
-#include <KMS/Msg/Destination.h>
-#include <KMS/WOP/System.h>
 #include <KMS/WOP/Link_USART.h>
 
 // ===== Local ==============================================================
@@ -35,9 +34,9 @@ public:
 
     };
 
-    const KMS::Msg::Destination ON_INTERRUPT;
+    Simulator(IOMap* aIOMap, const uint8_t* aChipFromInt, KMS::Embedded::USART* aUSART, KMS::Embedded::SPI* aSPI);
 
-    Simulator(IOMap* aIOMap, KMS::Embedded::USART* aUSART, KMS::Embedded::SPI* aSPI);
+    KMS::Embedded::IInterruptHandler* GetInterruptHandler();
 
     int Run();
 

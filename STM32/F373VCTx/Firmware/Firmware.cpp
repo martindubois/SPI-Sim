@@ -16,20 +16,25 @@
 
 using namespace KMS;
 
+// Constants
+// //////////////////////////////////////////////////////////////////////////
+
+static const uint8_t CHIP_SELECTS[10] = { 0, 1, 2, 4, 6, 7, 8, 9, 10, 14 };
+
+static const uint8_t CHIP_FROM_INT[16] = { 0, 1, 2, 0xff, 3, 0xff, 4, 5, 6, 7, 8, 0xff, 0xff, 0xff, 9, 0xff };
+
 // Static variables
 // //////////////////////////////////////////////////////////////////////////
 
 static Simulator::IOMap sIOMap;
 static STM::STM32F      sProcessor;
 
-static uint8_t CHIP_SELECTS[10] = { 0, 1, 2, 4, 6, 7, 8, 9, 10, 14 };
-
 // Entry point
 // //////////////////////////////////////////////////////////////////////////
 
 int main()
 {
-    sProcessor.Clock_Config();
+    sProcessor.Clock_64_MHz();
 
     // The selected IOs fit the STM32373C-EVAL board.
 
@@ -73,14 +78,14 @@ int main()
     }
 
     Embedded::USART* lUSART = sProcessor.USART_Get(1, KMS_STM_ID_PD(6), KMS_STM_ID_PD(5));
-    Embedded::SPI  * lSPI   = sProcessor.SPI_Get(0, KMS_STM_ID_PC(11), KMS_STM_ID_PC(12), KMS_STM_ID_PC(10));
+    Embedded::SPI  * lSPI   = sProcessor.SPI_Get(2, KMS_STM_ID_PC(11), KMS_STM_ID_PC(12), KMS_STM_ID_PC(10));
 
-    static Simulator sSimulator(&sIOMap, lUSART, lSPI);
+    static Simulator sSimulator(&sIOMap, CHIP_FROM_INT, lUSART, lSPI);
 
     // Interrupts
     for (i = 0; i < PROTOCOL_CHIP_QTY; i++)
     {
-        sProcessor.IO_ConfigureInterrupt(KMS_STM_ID_PB(CHIP_SELECTS[i]), sSimulator.ON_INTERRUPT);
+        sProcessor.IO_ConfigureInterrupt(KMS_STM_ID_PB(CHIP_SELECTS[i]), sSimulator.GetInterruptHandler());
     }
 
     return sSimulator.Run();

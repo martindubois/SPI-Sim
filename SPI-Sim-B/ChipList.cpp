@@ -19,8 +19,6 @@ using namespace KMS;
 // Constants
 // //////////////////////////////////////////////////////////////////////////
 
-#define MSG_INTERRUPT (1)
-
 #define UNCONNECTED (0xff)
 
 // Variables
@@ -32,68 +30,94 @@ static uint8_t sMemSlots[PROTOCOL_CHIP_QTY][32];
 // //////////////////////////////////////////////////////////////////////////
 
 ChipList::ChipList()
-    : ON_INTERRUPT(this, MSG_INTERRUPT)
-    , mConnected(UNCONNECTED), mCount(0), mIOs(NULL), mSPI(NULL)
+    : mChipFromInt(NULL), mConnected(UNCONNECTED), mCount(0), mIOs(NULL), mSPI(NULL)
 {}
 
-void ChipList::SetIOs(DAQ::DigitalInput* aIOs) { mIOs = aIOs; }
-
-void ChipList::SetSPI(Embedded::SPI* aSPI) { mSPI = aSPI; }
-
-// ===== Msg::IReceiver =====================================================
-
-unsigned int ChipList::Receive(void* aSender, unsigned int aCode, void* aData)
+void ChipList::Init(const uint8_t* aChipFromInt, Embedded::SPI* aSPI)
 {
-    unsigned int lResult = Msg::IReceiver::MSG_IGNORED;
+    // assert(NULL != aChipFromInt);
+    // assert(NULL != aSPI);
 
-    switch (aCode)
+    // assert(NULL == mChipFromInt);
+    // assert(NULL == mSPI);
+
+    mChipFromInt = aChipFromInt;
+    mSPI         = aSPI;
+}
+
+void ChipList::SetIOs(DAQ::DigitalInput* aIOs)
+{
+    // assert(NULL != aIOs);
+
+    // assert(NULL == mIOs);
+
+    mIOs = aIOs;
+}
+
+// ===== Embedded::IInterruptHandler ========================================
+
+// ASSUMPTION  The master never
+//             - Enable 2 slaves at same time
+//             - Forget to disable slave
+
+// Level: ISR
+// CRITICAL PATH  SPI slave connect
+void ChipList::OnInterrupt(uint8_t aIndex, uint8_t aLevel)
+{
+    uint8_t lChip = mChipFromInt[aIndex];
+    if (mCount > lChip)
     {
-    case MSG_INTERRUPT: lResult = OnInterrupt(); break;
-    }
+        if (aLevel)
+        {
+            if (mConnected == lChip)
+            {
+                mSPI->Slave_Disconnect();
 
-    return lResult;
+                mConnected = UNCONNECTED;
+            }
+        }
+        else
+        {
+            mSPI->Slave_Connect(mSlaves[lChip]);
+
+            mConnected = lChip;
+        }
+    }
 }
 
 // ===== WOP::BitArray<uint16_t> ============================================
 
 uint8_t ChipList::WriteData(const WOP::FrameBuffer* aIn)
 {
-    gSystem.AddTrace("Z", 1);
     uint8_t lResult = WOP::ValueArray<uint16_t, 10>::WriteData(aIn);
     if (KMS_WOP_RESULT_OK == lResult)
     {
-        gSystem.AddTrace("Y", 1);
         if (0 == GetValue(0))
         {
-            gSystem.AddTrace("X", 1);
             mCount = 0;
             gSystem.SetInstances(gInstances, INSTANCE_CHIP_FIRST);
         }
         else
         {
-            gSystem.AddTrace("W", 1);
-            uint16_t lType = GetValue(mCount);
-            if (0 != lType)
+            uint16_t lType;
+            
+            while ((PROTOCOL_CHIP_QTY > mCount) && (0 != (lType = GetValue(mCount))))
             {
-                WOP::Object* lInstance = NULL;
+                Embedded::SPI::ISlave* lSlave;
 
-                switch (lType)
-                {
-                case CHIP_ANALOG_DEVICES_AD5162: lInstance = new(sMemSlots[mCount]) AnalogDevices::AD5162();
-                case CHIP_ANALOG_DEVICES_AD5668: lInstance = new(sMemSlots[mCount]) AnalogDevices::AD5668();
-                case CHIP_ANALOG_DEVICES_AD7689: lInstance = new(sMemSlots[mCount]) AnalogDevices::AD7689();
-                }
-
+                WOP::Object* lInstance = CreateChip(lType, &lSlave);
                 if (NULL == lInstance)
                 {
-                    gSystem.AddTrace("V", 1);
                     // TODO APPLICATION_ERROR
                     SetValue(mCount, 0);
                     lResult = KMS_WOP_RESULT_INVALID_DATA_TYPE;
                 }
                 else
                 {
-                    gSystem.AddTrace("U", 1);
+                    // assert(NULL != lSlave);
+
+                    mSlaves[mCount] = lSlave;
+
                     gInstances[INSTANCE_CHIP_FIRST + mCount] = lInstance;
 
                     mCount++;
@@ -109,35 +133,31 @@ uint8_t ChipList::WriteData(const WOP::FrameBuffer* aIn)
 // Private
 // //////////////////////////////////////////////////////////////////////////
 
-unsigned int ChipList::OnInterrupt()
+WOP::Object* ChipList::CreateChip(uint16_t aType, Embedded::SPI::ISlave** aSlave)
 {
-    gSystem.AddTrace("A", 1);
+    // assert(NULL != aSlave);
 
-    if (mCount > mConnected)
+    switch (aType)
     {
-        gSystem.AddTrace("B", 1);
-        if (!mIOs[mConnected].Read())
-        {
-            gSystem.AddTrace("C", 1);
-            return 0;
-        }
-
-        mSPI->Slave_Disconnect();
-
-        mConnected = UNCONNECTED;
+    case CHIP_ANALOG_DEVICES_AD5162:
+        gSystem.AddTrace("AD5162", 6);
+        AnalogDevices::AD5162* lAD5162;
+        lAD5162 = new(sMemSlots[mCount]) AnalogDevices::AD5162();
+        *aSlave = lAD5162;
+        return lAD5162;
+    case CHIP_ANALOG_DEVICES_AD5668:
+        gSystem.AddTrace("AD5668", 6);
+        AnalogDevices::AD5668* lAD5668;
+        lAD5668 = new(sMemSlots[mCount]) AnalogDevices::AD5668();
+        *aSlave = lAD5668;
+        return lAD5668;
+    case CHIP_ANALOG_DEVICES_AD7689:
+        gSystem.AddTrace("AD7689", 6);
+        AnalogDevices::AD7689* lAD7689;
+        lAD7689 = new(sMemSlots[mCount]) AnalogDevices::AD7689();
+        *aSlave = lAD7689;
+        return lAD7689;
     }
 
-    for (unsigned int i = 0; i < mCount; i++)
-    {
-        if (!mIOs[i].Read())
-        {
-            gSystem.AddTrace("D", 1);
-            mSPI->Slave_Connect(mReceivers[i], CHIP_MSG_RX, CHIP_MSG_TX);
-
-            mConnected = i;
-            break;
-        }
-    }
-
-    return 0;
+    return NULL;
 }
