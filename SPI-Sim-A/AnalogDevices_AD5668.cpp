@@ -68,7 +68,7 @@ namespace SPI_Sim
 
             for (uint8_t i = 0; i < 8; i++)
             {
-                std::cout << "  Channel " << ('A' + i) << " = " << AI_Read(i) << " V\n";
+                std::cout << "  Channel " << static_cast<char>('A' + i) << " = " << AI_Read(i) << " V\n";
             }
 
             std::cout << std::endl;

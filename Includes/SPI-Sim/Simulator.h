@@ -11,6 +11,7 @@
 #include <KMS/CLI/Tool.h>
 #include <KMS/Com/Port.h>
 #include <KMS/Msg/IReceiver.h>
+#include <KMS/Thread/Thread.h>
 #include <KMS/WOP/Link_Port.h>
 #include <KMS/WOP/System.h>
 #include <KMS/WOP/ValueArray.h>
@@ -28,16 +29,29 @@ namespace SPI_Sim
 
     public:
 
+        static const unsigned int TICK_PERIOD_ms;
+
         static int Main(int aCount, const char** aVector);
 
         Simulator();
 
         ~Simulator();
 
+        // aIn  The Simulator destructor will delete this chips
         void AddChip(Chip* aIn);
 
-        void Start();
-        void Stop ();
+        // ===== Commands ===================================================
+
+        virtual void Connect   ();
+        virtual void Disconnect();
+
+        virtual void Tick_Start();
+        virtual void Tick_Stop ();
+
+        // ===== Events =====================================================
+
+        virtual void OnLoad();
+        virtual void OnTick();
 
         DigitalInputs  mDigitalInputs;
         DigitalOutputs mDigitalOutputs;
@@ -50,6 +64,7 @@ namespace SPI_Sim
         // ===== KMS::CLI::Tool =============================================
         virtual void DisplayHelp(FILE* aOut) const;
         virtual void ExecuteCommand(const char* aC);
+        virtual int  Run();
 
     private:
 
@@ -62,6 +77,7 @@ namespace SPI_Sim
 
         // ===== Events =====================================================
         unsigned int OnChipsChanged();
+        unsigned int OnIterate();
 
         // ===== Command ====================================================
         void ChipCommand(unsigned int aIndex, const char* aCmd);
@@ -79,6 +95,9 @@ namespace SPI_Sim
 
         KMS::WOP::Link_Port mLink;
         KMS::WOP::System    mSystem;
+
+        uint64_t            mTick_Next_100ns;
+        KMS::Thread::Thread mTick_Thread;
 
     };
 
