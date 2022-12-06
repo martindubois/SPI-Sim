@@ -34,9 +34,11 @@
     <ClCompile Include="DigitalInputs.cpp" />
     <ClCompile Include="DigitalOutputs.cpp" />
     <ClCompile Include="Simulator.cpp" />
+    <ClCompile Include="Utilities_W.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Component.h" />
+    <ClInclude Include="Utilities.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

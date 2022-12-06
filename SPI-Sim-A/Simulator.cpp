@@ -5,7 +5,7 @@
 // Product   SPI-Sim
 // File      SPI-Sim-A/Simulator.cpp
 
-// TEST COVERAGE 2022-11-29 KMS - Martin Dubois, P. Eng.
+// TEST COVERAGE 2022-12-05 KMS - Martin Dubois, P. Eng.
 
 #include "Component.h"
 
@@ -25,6 +25,8 @@
 #include "../Common/Protocol.h"
 #include "../Common/Version.h"
 
+#include "Utilities.h"
+
 using namespace KMS;
 
 // Configuration
@@ -38,12 +40,21 @@ using namespace KMS;
 static const Cfg::MetaData MD_CHIPS("Chips += {Type}");
 
 #define MSG_CHIPS_CHANGED (1)
+#define MSG_ITERATE       (2)
+
+// Static function declarations
+// //////////////////////////////////////////////////////////////////////////
+
+static void Display_Error(const char* aMsg);
+static void Display_OK   (const char* aMsg);
 
 namespace SPI_Sim
 {
 
     // Public
     // //////////////////////////////////////////////////////////////////////
+
+    const unsigned int Simulator::TICK_PERIOD_ms = 50;
 
     int Simulator::Main(int aCount, const char** aVector)
     {
@@ -89,10 +100,14 @@ namespace SPI_Sim
         mChips.mOnChanged.Set(this, MSG_CHIPS_CHANGED);
         mChips.SetCreator(DI::UInt<uint16_t>::Create);
 
+        mTick_Thread.mOnIterate.Set(this, MSG_ITERATE);
+
         AddEntry("Chips", &mChips, false, &MD_CHIPS);
         AddEntry("Port" , &mPort , false);
     }
 
+    // No need to delete the chips, the mChips (DI::Array) destructor will
+    // delete them.
     Simulator::~Simulator() {}
 
     void Simulator::AddChip(Chip* aChip)
@@ -114,6 +129,49 @@ namespace SPI_Sim
         mSystem.SetInstances(mInstances, lInstanceCount);
     }
 
+    // ===== Commands =======================================================
+
+    void Simulator::Connect()
+    {
+        mPort.Connect(Dev::Device::FLAG_READ_ACCESS | Dev::Device::FLAG_WRITE_ACCESS);
+
+        mLink.Start();
+
+        Display_OK("Connected");
+    }
+
+    void Simulator::Disconnect()
+    {
+        mLink.Stop();
+
+        mPort.Disconnect();
+
+        Display_OK("Disconnected");
+    }
+
+    void Simulator::Tick_Start()
+    {
+        uint64_t lNow_100ns = Utl_GetNow_100ns();
+
+        mTick_Next_100ns = lNow_100ns;
+
+        mTick_Thread.Start();
+
+        Display_OK("Started");
+    }
+
+    void Simulator::Tick_Stop()
+    {
+        mTick_Thread.StopAndWait(2000); // 2 s
+
+        Display_OK("Stopped");
+    }
+
+    // ===== Events =========================================================
+
+    void Simulator::OnLoad() {}
+    void Simulator::OnTick() {}
+
     // ===== Msg::Receive ===================================================
 
     unsigned int Simulator::Receive(void* aSender, unsigned int aCode, void* aData)
@@ -123,6 +181,7 @@ namespace SPI_Sim
         switch (aCode)
         {
         case MSG_CHIPS_CHANGED: lResult = OnChipsChanged(); break;
+        case MSG_ITERATE      : lResult = OnIterate     (); break;
         }
 
         return lResult;
@@ -143,22 +202,24 @@ namespace SPI_Sim
             "DO_Get {Index}\n"
             "DO_Set {Index}\n"
             "Dump\n"
-            "Start\n"
-            "Stop\n");
+            "Tick Start\n"
+            "Tick Stop\n");
 
         return CLI::Tool::DisplayHelp(aOut);
     }
 
     void Simulator::ExecuteCommand(const char* aC)
     {
+        assert(NULL != aC);
+
         char         lCmd[LINE_LENGTH];
         unsigned int lIndex;
 
-        if (0 == strcmp(aC, "Connect"   )) { mPort.Connect(Dev::Device::FLAG_READ_ACCESS | Dev::Device::FLAG_WRITE_ACCESS); return; }
-        if (0 == strcmp(aC, "Disconnect")) { mPort.Disconnect(); return; }
-        if (0 == strcmp(aC, "Dump"      )) { Dump (); return; }
-        if (0 == strcmp(aC, "Start"     )) { Start(); return; }
-        if (0 == strcmp(aC, "Stop"      )) { Stop (); return; }
+        if (0 == strcmp(aC, "Connect"   )) { Connect   (); return; }
+        if (0 == strcmp(aC, "Disconnect")) { Disconnect(); return; }
+        if (0 == strcmp(aC, "Dump"      )) { Dump      (); return; }
+        if (0 == strcmp(aC, "Tick Start")) { Tick_Start(); return; }
+        if (0 == strcmp(aC, "Tick Stop" )) { Tick_Stop (); return; }
 
         if (2 == sscanf_s(aC, "Chip %u %[^\n\r\t]", &lIndex, lCmd SizeInfo(lCmd))) { ChipCommand(lIndex, lCmd); return; }
 
@@ -168,6 +229,13 @@ namespace SPI_Sim
         if (1 == sscanf_s(aC, "DO_Set %u\n"  , &lIndex)) { DO_Set  (lIndex); return; }
 
         CLI::Tool::ExecuteCommand(aC);
+    }
+
+    int Simulator::Run()
+    {
+        OnLoad();
+
+        return CLI::Tool::Run();
     }
 
     // Private
@@ -192,6 +260,8 @@ namespace SPI_Sim
     {
         if (mChips.GetCount() > mChipCount)
         {
+            KMS_EXCEPTION_ASSERT(CHIP_MAX > mChipCount, APPLICATION_USER_ERROR, "Too many chips", mChipCount);
+
             const DI::Object* lObject = mChips.GetEntry_R(mChipCount);
             assert(NULL != lObject);
 
@@ -219,6 +289,24 @@ namespace SPI_Sim
         return 0;
     }
 
+    unsigned int Simulator::OnIterate()
+    {
+        uint64_t lNow_100ns = Utl_GetNow_100ns();
+
+        mTick_Next_100ns += (TICK_PERIOD_ms * 10000);
+
+        if (mTick_Next_100ns > lNow_100ns)
+        {
+            uint64_t lSleep_100ns = mTick_Next_100ns - lNow_100ns;
+
+            Sleep(static_cast<DWORD>(lSleep_100ns / 10000));
+        }
+
+        OnTick();
+
+        return 0;
+    }
+
     // ===== Commands =======================================================
 
     void Simulator::ChipCommand(unsigned int aId, const char* aCmd)
@@ -230,52 +318,48 @@ namespace SPI_Sim
     {
         if (mDigitalInputs.GetCount() <= aId)
         {
-            std::cout << Console::Color::RED;
-            std::cout << "USER ERROR  Invalid id" << Console::Color::WHITE << std::endl;
+            Display_Error("USER ERROR  Invalid id");
             return;
         }
 
-        std::cout << "DI #" << aId << " = " << (mDigitalInputs.DI_Read(aId) ? "true" : "false") << "\n" << std::endl;
+        std::cout << "\nDI #" << aId << " = " << (mDigitalInputs.DI_Read(aId) ? "true" : "false") << "\n" << std::endl;
     }
 
     void Simulator::DO_Clear(unsigned int aId)
     {
         if (mDigitalOutputs.GetCount() <= aId)
         {
-            std::cout << Console::Color::RED;
-            std::cout << "USER ERROR  Invalid id" << Console::Color::WHITE << "\n" << std::endl;
+            Display_Error("USER ERROR  Invalid id");
             return;
         }
 
         mDigitalOutputs.DO_Clear(aId);
 
-        std::cout << "Cleared" << std::endl;
+        Display_OK("Cleared");
     }
 
     void Simulator::DO_Get(unsigned int aId)
     {
         if (mDigitalOutputs.GetCount() <= aId)
         {
-            std::cout << Console::Color::RED;
-            std::cout << "USER ERROR  Invalid id" << Console::Color::WHITE << std::endl;
+            Display_Error("USER ERROR  Invalid id");
             return;
         }
 
-        std::cout << "DO #" << aId << " = " << (mDigitalOutputs.DO_Get(aId) ? "true" : "false") << std::endl;
+        std::cout << "\nDO #" << aId << " = " << (mDigitalOutputs.DO_Get(aId) ? "true" : "false") << "\n" << std::endl;
     }
 
     void Simulator::DO_Set(unsigned int aId)
     {
         if (mDigitalOutputs.GetCount() <= aId)
         {
-            std::cout << Console::Color::RED;
-            std::cout << "USER ERROR  Invalid id" << Console::Color::WHITE << std::endl;
+            Display_Error("USER ERROR  Invalid id");
             return;
         }
 
         mDigitalOutputs.DO_Set(aId);
 
-        std::cout << "Set\n" << std::endl;
+        Display_OK("Set");
     }
 
     void Simulator::Dump()
@@ -292,18 +376,22 @@ namespace SPI_Sim
         }
     }
 
-    void Simulator::Stop()
-    {
-        mLink.Stop();
+}
 
-        std::cout << "Stopped\n" << std::endl;
-    }
+// Static functions
+// //////////////////////////////////////////////////////////////////////////
 
-    void Simulator::Start()
-    {
-        mLink.Start();
+void Display_Error(const char* aMsg)
+{
+    assert(NULL != aMsg);
 
-        std::cout << "Started\n" << std::endl;
-    }
+    std::cout << Console::Color::RED;
+    std::cout << "\n" << aMsg << "\n" << Console::Color::WHITE << std::endl;
+}
 
+void Display_OK(const char* aMsg)
+{
+    assert(NULL != aMsg);
+
+    std::cout << "\n" << aMsg << "\n" << std::endl;
 }
