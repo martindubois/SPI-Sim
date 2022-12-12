@@ -42,7 +42,7 @@ namespace AnalogDevices
     // ===== Embedded::SPI::ISlave ==========================================
     uint8_t AD5668::OnConnect(uint16_t*)
     {
-        return FLAG_TX_WORD | FLAG_WORD_16;
+        return FLAG_TX_WORD;
     }
 
     void AD5668::OnDisconnect() {}
@@ -75,7 +75,7 @@ namespace AnalogDevices
 
     uint8_t AD5668::OnTxReady(uint16_t*)
     {
-        return FLAG_TX_LAST_WORD | FLAG_TX_WORD | FLAG_WORD_16;
+        return FLAG_TX_LAST_WORD | FLAG_TX_WORD;
     }
 
 }
