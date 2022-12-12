@@ -58,6 +58,13 @@ namespace SPI_Sim
 
     int Simulator::Main(int aCount, const char** aVector)
     {
+        Simulator lSimulator(VERSION);
+
+        return Main(aCount, aVector, &lSimulator);
+    }
+
+    int Simulator::Main(int aCount, const char** aVector, Simulator* aSimulator)
+    {
         assert(1 <= aCount);
         assert(NULL != aVector);
 
@@ -67,10 +74,9 @@ namespace SPI_Sim
         {
             Cfg::Configurator lC;
             Installer         lInstaller;
-            Simulator         lS;
 
             lC.AddConfigurable(&lInstaller);
-            lC.AddConfigurable(&lS);
+            lC.AddConfigurable(aSimulator);
 
             lC.AddConfigurable(&Dbg::gLog);
 
@@ -79,17 +85,17 @@ namespace SPI_Sim
 
             lInstaller.Run();
 
-            lResult = lS.Run();
+            lResult = aSimulator->Run();
         }
         KMS_CATCH_RESULT(lResult);
 
         return lResult;
     }
 
-    Simulator::Simulator()
+    Simulator::Simulator(const Version& aVersion)
         : mChipCount(0)
         , mLink(&mSystem, &mPort)
-        , mSystem(VERSION, PROTOCOL_MAGIC, PROTOCOL_VERSION)
+        , mSystem(aVersion, PROTOCOL_MAGIC, PROTOCOL_VERSION)
     {
         mInstances[0] = &mDigitalInputs;
         mInstances[1] = &mDigitalOutputs;

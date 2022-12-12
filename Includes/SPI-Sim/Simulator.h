@@ -33,7 +33,9 @@ namespace SPI_Sim
 
         static int Main(int aCount, const char** aVector);
 
-        Simulator();
+        static int Main(int aCount, const char** aVector, Simulator* aSimulator);
+
+        Simulator(const KMS::Version& aVersion);
 
         ~Simulator();
 
