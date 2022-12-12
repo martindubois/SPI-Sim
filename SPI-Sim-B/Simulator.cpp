@@ -40,7 +40,7 @@ Simulator::Simulator(IOMap* aIOMap, const uint8_t* aChipFromInt, Embedded::USART
 
     sChips.Init(aChipFromInt, aSPI);
 
-    sChips .SetIOs(aIOMap->mChipSelects);
+    sChips .SetIOs(aIOMap->mChipSelects, aIOMap->mLEDs[1]);
     sInput .SetIOs(aIOMap->mInputs);
     sOutput.SetIOs(aIOMap->mOutputs);
 }

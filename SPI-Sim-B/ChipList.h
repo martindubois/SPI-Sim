@@ -9,6 +9,7 @@
 
 // ===== Import/Includes ====================================================
 #include <KMS/DAQ/DigitalInput.h>
+#include <KMS/DAQ/DigitalOutput.h>
 #include <KMS/Embedded/IInterruptHandler.h>
 #include <KMS/Embedded/SPI.h>
 #include <KMS/WOP/ValueArray.h>
@@ -22,7 +23,7 @@ public:
 
     void Init(const uint8_t* aChipFromInt, KMS::Embedded::SPI* aSPI);
 
-    void SetIOs(KMS::DAQ::DigitalInput* aIOs);
+    void SetIOs(KMS::DAQ::DigitalInput* aIOs, const KMS::DAQ::DigitalOutput& aLED);
 
     // ===== Embedded::IInterruptHander =====================================
     virtual void OnInterrupt(uint8_t aIndex, uint8_t aLevel);
@@ -38,6 +39,7 @@ private:
     uint8_t                     mConnected;
     uint8_t                     mCount;
     KMS::DAQ::DigitalInput    * mIOs;
+    KMS::DAQ::DigitalOutput     mLED;
     KMS::Embedded::SPI::ISlave* mSlaves[PROTOCOL_CHIP_QTY];
     KMS::Embedded::SPI        * mSPI;
 

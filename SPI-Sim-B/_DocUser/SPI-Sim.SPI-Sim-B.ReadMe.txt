@@ -1,0 +1,10 @@
+
+Author    KMS - Martin Dubois, P. Eng.
+Copyright (C) 2022 KMS
+License   http://www.apache.org/licenses/LICENSE-2.0
+Product   SPI-Sim
+File      SPI-Sim-B/_DocUser/SPI-Sim.SPI-Sim-B.ReadMe.txt
+
+* LED LD2 turns on when the SPI link is active
+
+0.0.3-dev 2022-12-02

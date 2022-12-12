@@ -45,13 +45,14 @@ void ChipList::Init(const uint8_t* aChipFromInt, Embedded::SPI* aSPI)
     mSPI         = aSPI;
 }
 
-void ChipList::SetIOs(DAQ::DigitalInput* aIOs)
+void ChipList::SetIOs(DAQ::DigitalInput* aIOs, const DAQ::DigitalOutput& aLED)
 {
     // assert(NULL != aIOs);
 
     // assert(NULL == mIOs);
 
     mIOs = aIOs;
+    mLED = aLED;
 }
 
 // ===== Embedded::IInterruptHandler ========================================
@@ -71,6 +72,7 @@ void ChipList::OnInterrupt(uint8_t aIndex, uint8_t aLevel)
         {
             if (mConnected == lChip)
             {
+                mLED.Set();
                 mSPI->Slave_Disconnect();
 
                 mConnected = UNCONNECTED;
@@ -79,6 +81,7 @@ void ChipList::OnInterrupt(uint8_t aIndex, uint8_t aLevel)
         else
         {
             mSPI->Slave_Connect(mSlaves[lChip]);
+            mLED.Clear();
 
             mConnected = lChip;
         }
