@@ -35,6 +35,7 @@ namespace AnalogDevices
         uint8_t mIndex_Max;
         uint8_t mIndex_Seq;
         uint8_t mIndex_Tx;
+        uint8_t mResetCount;
         uint8_t mSeqMode;
 
     };

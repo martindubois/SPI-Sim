@@ -40,17 +40,13 @@ typedef union
 }
 ConfigReg;
 
-#define CFG              (0x8000)
-#define INX_MASK         (0x0e00)
-#define INX_SHIFT        (9)
-#define SEQ_MASK         (0x0018)
-#define SEQ_SHIFT        (3)
-
 #define SEQ_MODE_DISABLE  (0x0)
 #define SEQ_MODE_ALL_TEMP (0x2)
 #define SEQ_MODE_ALL      (0x3)
 
 #define INDEX_TEMP (8)
+
+static const char* DIGITS = "0123456789abcdef";
 
 namespace AnalogDevices
 {
@@ -58,20 +54,26 @@ namespace AnalogDevices
     // Public
     // //////////////////////////////////////////////////////////////////////
 
-    AD7689::AD7689() : mIndex_Acq(0), mIndex_Max(7), mIndex_Seq(0), mIndex_Tx(0), mSeqMode(SEQ_MODE_ALL)
-    {
-    }
+    AD7689::AD7689()
+        : mIndex_Acq(0)
+        , mIndex_Max(7)
+        , mIndex_Seq(0)
+        , mIndex_Tx (0)
+        , mResetCount(0)
+        , mSeqMode(SEQ_MODE_ALL)
+    {}
 
     void* AD7689::operator new(size_t, void* aPtr) { return aPtr; }
 
     // ===== Embedded::SPI::ISlave ==========================================
+
     uint8_t AD7689::OnConnect(uint16_t* aWord)
     {
         // assert(NULL != aWord);
 
         *aWord = GetValue(mIndex_Tx);
 
-        return FLAG_TX_LAST_WORD | FLAG_TX_WORD;
+        return FLAG_CLOCK_LOW | FLAG_TX_LAST_WORD;
     }
 
     void AD7689::OnDisconnect() {}
@@ -87,43 +89,70 @@ namespace AnalogDevices
 
         lCR.mValue = *aWord;
 
-        if (lCR.mFields.mCFG)
+        char lTrace[5];
+
+        lTrace[0] = DIGITS[(lCR.mValue >> 12) & 0xf];
+        lTrace[1] = DIGITS[(lCR.mValue >>  8) & 0xf];
+        lTrace[2] = DIGITS[(lCR.mValue >>  4) & 0xf];
+        lTrace[3] = DIGITS[ lCR.mValue        & 0xf];
+        lTrace[4] = ' ';
+        gSystem.AddTrace(lTrace, 5);
+
+        if (0xfffc == (lCR.mValue & 0xfffc))
         {
-            switch (lCR.mFields.mSEQ)
+            gSystem.AddTrace("R ", 2);
+            mResetCount++;
+            if (2 == mResetCount)
             {
-            case SEQ_MODE_DISABLE :
-                mIndex_Seq = lCR.mFields.mINx;
-                mSeqMode   = lCR.mFields.mSEQ;
-                break;
-            case SEQ_MODE_ALL     :
-            case SEQ_MODE_ALL_TEMP:
-                mIndex_Max = lCR.mFields.mINx;
-                mIndex_Seq = 0;
-                mSeqMode   = lCR.mFields.mSEQ;
-                break;
+                mIndex_Max  = 7;
+                mIndex_Seq  = 0;
+                mResetCount = 0;
+                mSeqMode    = SEQ_MODE_ALL;
             }
         }
         else
         {
-            if (INDEX_TEMP == mIndex_Seq)
+            mResetCount = 0;
+
+            if (lCR.mFields.mCFG)
             {
-                mIndex_Seq = 0;
+                gSystem.AddTrace("C ", 2);
+                switch (lCR.mFields.mSEQ)
+                {
+                case SEQ_MODE_DISABLE :
+                    mIndex_Seq = lCR.mFields.mINx;
+                    mSeqMode   = lCR.mFields.mSEQ;
+                    break;
+                case SEQ_MODE_ALL     :
+                case SEQ_MODE_ALL_TEMP:
+                    mIndex_Max = lCR.mFields.mINx;
+                    mIndex_Seq = 0;
+                    mSeqMode   = lCR.mFields.mSEQ;
+                    break;
+                }
             }
             else
             {
-                switch (mSeqMode)
+                if (INDEX_TEMP == mIndex_Seq)
                 {
-                case SEQ_MODE_DISABLE: break;
-                case SEQ_MODE_ALL:
-                    mIndex_Seq++;
-                    if (mIndex_Max < mIndex_Seq) { mIndex_Seq = 0; }
-                    break;
-                case SEQ_MODE_ALL_TEMP:
-                    mIndex_Seq++;
-                    if (mIndex_Max < mIndex_Seq) { mIndex_Seq = INDEX_TEMP; }
-                    break;
+                    mIndex_Seq = 0;
+                }
+                else
+                {
+                    switch (mSeqMode)
+                    {
+                    case SEQ_MODE_DISABLE: break;
+                    case SEQ_MODE_ALL:
+                        mIndex_Seq++;
+                        if (mIndex_Max < mIndex_Seq) { mIndex_Seq = 0; }
+                        break;
+                    case SEQ_MODE_ALL_TEMP:
+                        mIndex_Seq++;
+                        if (mIndex_Max < mIndex_Seq) { mIndex_Seq = INDEX_TEMP; }
+                        break;
 
-                // default: assert(false);
+                    // default: assert(false);
+                    }
                 }
             }
         }

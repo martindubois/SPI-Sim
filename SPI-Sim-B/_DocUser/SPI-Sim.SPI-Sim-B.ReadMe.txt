@@ -6,5 +6,6 @@ Product   SPI-Sim
 File      SPI-Sim-B/_DocUser/SPI-Sim.SPI-Sim-B.ReadMe.txt
 
 * LED LD2 turns on when the SPI link is active
+- AnalogDevices::AD7689 - Understand reset sequence
 
 0.0.3-dev 2022-12-02
