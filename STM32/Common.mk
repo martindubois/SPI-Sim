@@ -5,7 +5,7 @@
 # Product   KMS-Framework
 # File      STM32/Common.mk
 
-IMPORT_FOLDER = ../../../Import
+IMPORT_FOLDER = ../Import
 
 KMS_LINKER_SCRIPTS = $(IMPORT_FOLDER)/LinkerScripts
 KMS_MAKEFILES      = $(IMPORT_FOLDER)/Makefiles
