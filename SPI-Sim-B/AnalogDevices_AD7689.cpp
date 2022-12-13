@@ -46,8 +46,6 @@ ConfigReg;
 
 #define INDEX_TEMP (8)
 
-static const char* DIGITS = "0123456789abcdef";
-
 namespace AnalogDevices
 {
 
@@ -89,18 +87,8 @@ namespace AnalogDevices
 
         lCR.mValue = *aWord;
 
-        char lTrace[5];
-
-        lTrace[0] = DIGITS[(lCR.mValue >> 12) & 0xf];
-        lTrace[1] = DIGITS[(lCR.mValue >>  8) & 0xf];
-        lTrace[2] = DIGITS[(lCR.mValue >>  4) & 0xf];
-        lTrace[3] = DIGITS[ lCR.mValue        & 0xf];
-        lTrace[4] = ' ';
-        gSystem.AddTrace(lTrace, 5);
-
         if (0xfffc == (lCR.mValue & 0xfffc))
         {
-            gSystem.AddTrace("R ", 2);
             mResetCount++;
             if (2 == mResetCount)
             {
@@ -116,7 +104,6 @@ namespace AnalogDevices
 
             if (lCR.mFields.mCFG)
             {
-                gSystem.AddTrace("C ", 2);
                 switch (lCR.mFields.mSEQ)
                 {
                 case SEQ_MODE_DISABLE :
