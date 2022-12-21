@@ -39,6 +39,7 @@ namespace SPI_Sim
 
     Chip::~Chip() {}
 
+    uint16_t    Chip::GetChipType    () const {                                return mType        ; }
     const char* Chip::GetManufacturer() const { assert(NULL != mManufacturer); return mManufacturer; }
     const char* Chip::GetName        () const { assert(NULL != mName        ); return mName        ; }
 

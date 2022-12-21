@@ -83,11 +83,14 @@ namespace SPI_Sim
 
         // ===== Command ====================================================
         void ChipCommand(unsigned int aIndex, const char* aCmd);
+        void Chips();
         void Dump();
         void DI_Read(unsigned int aId);
+        void DIs();
         void DO_Clear(unsigned int aId);
         void DO_Get(unsigned int aId);
         void DO_Set(unsigned int aId);
+        void DOs();
 
         KMS::DI::Array                           mChips;
         unsigned int                             mChipCount;

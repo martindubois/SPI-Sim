@@ -122,6 +122,8 @@ namespace SPI_Sim
 
         KMS_EXCEPTION_ASSERT(CHIP_MAX > mChipCount, APPLICATION_USER_ERROR, "Too many chips", "");
 
+        mChipTypes.SetValue(mChipCount, aChip->GetChipType());
+
         mChips.SetEntry(mChipCount, aChip, true);
 
         unsigned int lInstanceCount = INSTANCE_CHIP_FIRST + mChipCount;
@@ -201,12 +203,15 @@ namespace SPI_Sim
 
         fprintf_s(aOut,
             "Chip {Index} {Command}\n"
+            "Chips\n"
             "Connect\n"
             "Disconnect\n"
             "DI_Read {Index}\n"
+            "DIs\n"
             "DO_Clear {Index}\n"
             "DO_Get {Index}\n"
             "DO_Set {Index}\n"
+            "DOs\n"
             "Dump\n"
             "Tick Start\n"
             "Tick Stop\n");
@@ -222,7 +227,10 @@ namespace SPI_Sim
         unsigned int lIndex;
 
         if (0 == strcmp(aC, "Connect"   )) { Connect   (); return; }
+        if (0 == strcmp(aC, "Chips"     )) { Chips     (); return; }
         if (0 == strcmp(aC, "Disconnect")) { Disconnect(); return; }
+        if (0 == strcmp(aC, "DIs"       )) { DIs       (); return; }
+        if (0 == strcmp(aC, "DOs"       )) { DOs       (); return; }
         if (0 == strcmp(aC, "Dump"      )) { Dump      (); return; }
         if (0 == strcmp(aC, "Tick Start")) { Tick_Start(); return; }
         if (0 == strcmp(aC, "Tick Stop" )) { Tick_Stop (); return; }
@@ -281,8 +289,6 @@ namespace SPI_Sim
                 KMS_EXCEPTION(APPLICATION_USER_ERROR, "Invalid chip type", lType->Get());
             }
 
-            mChipTypes.SetValue(mChipCount, lType->Get());
-
             AddChip(lChip);
         }
         // NOT TESTED
@@ -320,6 +326,17 @@ namespace SPI_Sim
         GetChip(aId)->ExecuteCommand(aCmd);
     }
 
+    void Simulator::Chips()
+    {
+        for (DI::Container::Entry& lEntry : mChips.mInternal)
+        {
+            Chip* lChip = dynamic_cast<Chip*>(lEntry.Get());
+            assert(NULL != lChip);
+
+            lChip->Dump();
+        }
+    }
+
     void Simulator::DI_Read(unsigned int aId)
     {
         if (mDigitalInputs.GetCount() <= aId)
@@ -330,6 +347,9 @@ namespace SPI_Sim
 
         std::cout << "\nDI #" << aId << " = " << (mDigitalInputs.DI_Read(aId) ? "true" : "false") << "\n" << std::endl;
     }
+
+    void Simulator::DIs() { mDigitalInputs .Dump(); }
+    void Simulator::DOs() { mDigitalOutputs.Dump(); }
 
     void Simulator::DO_Clear(unsigned int aId)
     {
@@ -370,16 +390,10 @@ namespace SPI_Sim
 
     void Simulator::Dump()
     {
-        mDigitalInputs .Dump();
-        mDigitalOutputs.Dump();
+        DIs();
+        DOs();
 
-        for (DI::Container::Entry& lEntry : mChips.mInternal)
-        {
-            Chip* lChip = dynamic_cast<Chip*>(lEntry.Get());
-            assert(NULL != lChip);
-
-            lChip->Dump();
-        }
+        Chips();
     }
 
 }
