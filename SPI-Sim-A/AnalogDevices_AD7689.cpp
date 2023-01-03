@@ -1,6 +1,6 @@
 
 // Author    KMS - Martin Dubois, P. Eng.
-// Copyright (C) 2022 KMS
+// Copyright (C) 2022-2023 KMS
 // License   http://www.apache.org/licenses/LICENSE-2.0
 // Product   SPI-Sim
 // File      SPI-Sim-A/AnalogDevices_AD7689.cpp
@@ -99,7 +99,7 @@ namespace SPI_Sim
 
             for (uint8_t i = 0; i < 9; i++)
             {
-                std::cout << "  Channel " << static_cast<unsigned int>(i) << " = " << AO_Get(i) << " V\n";
+                std::cout << "  Channel " << static_cast<unsigned int>(i) << " = " << AO_Get(i) << " V\t(" << AO_Get_Raw(i) << ")\n";
             }
 
             std::cout << std::endl;

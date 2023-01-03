@@ -1,6 +1,6 @@
 
 // Author    KMS - Martin Dubois, P. Eng.
-// Copyright (C) 2022 KMS
+// Copyright (C) 2022-2023 KMS
 // License   http://www.apache.org/licenses/LICENSE-2.0
 // Product   SPI-Sim
 // File      SPI-Sim-A/AnalogDevices_AD5162.cpp
@@ -72,9 +72,9 @@ namespace SPI_Sim
         {
             Chip::Dump();
 
-            std::cout << "  R A1 to W1 = " << AI_Read(ID_AI_R_A1_W1) << " ohm\n";
-            std::cout << "  R B1 to W1 = " << AI_Read(ID_AI_R_B1_W1) << " ohm\n";
-            std::cout << "  R B2 to W2 = " << AI_Read(ID_AI_R_B2_W2) << " ohm" << "\n" << std::endl;
+            std::cout << "  R A1 to W1 = " << AI_Read(ID_AI_R_A1_W1) << " ohm\t(" << AI_Read_Raw(ID_AI_R_A1_W1) << ")\n";
+            std::cout << "  R B1 to W1 = " << AI_Read(ID_AI_R_B1_W1) << " ohm\t(" << AI_Read_Raw(ID_AI_R_B1_W1) << ")\n";
+            std::cout << "  R B2 to W2 = " << AI_Read(ID_AI_R_B2_W2) << " ohm\t(" << AI_Read_Raw(ID_AI_R_B2_W2) << ")\n" << std::endl;
         }
     }
 }
